@@ -79,7 +79,7 @@ export default {
           ...{ translateX: newValue },
         }
         const onComplete = function () {
-          this.blobTransformState = newBlobState
+          self.blobTransformState = newBlobState
           self._checkMessageQueue()
         }
         this.$KUTE
@@ -142,6 +142,7 @@ export default {
     },
     _actuallyClearTexts() {
       const BEFORE_CLEAR_DELAY = 1500
+      const CLEAR_TEXT_TWEEN_DURATION = 650
       const self = this
       const textContainer = document.getElementsByClassName('message-item')
 
@@ -155,12 +156,15 @@ export default {
         { opacity: 1, translateY: 0 },
         { opacity: 0, translateY: -100 },
         {
-          duration: 650,
+          duration: CLEAR_TEXT_TWEEN_DURATION,
           easing: 'easingSinusoidalInOut',
-          onComplete,
         }
       )
-      setTimeout(() => clearContainerTween.start(), BEFORE_CLEAR_DELAY)
+      setTimeout(() => {
+        clearContainerTween.start()
+        // Need to add another timout so multiple tweens can have only one onComplete() callback
+        setTimeout(() => onComplete(), CLEAR_TEXT_TWEEN_DURATION)
+      }, BEFORE_CLEAR_DELAY)
     },
     _checkMessageQueue() {
       if (this.messagesQueue.length > 0) {

@@ -141,6 +141,7 @@ export default {
       })
     },
     _actuallyClearTexts() {
+      const BEFORE_CLEAR_DELAY = 1500
       const self = this
       const textContainer = document.getElementsByClassName('message-item')
 
@@ -149,18 +150,17 @@ export default {
         self._checkMessageQueue()
       }
 
-      this.$KUTE
-        .allFromTo(
-          textContainer,
-          { opacity: 1, translateY: 0 },
-          { opacity: 0, translateY: -100 },
-          {
-            duration: 650,
-            easing: 'easingSinusoidalInOut',
-            onComplete,
-          }
-        )
-        .start()
+      const clearContainerTween = this.$KUTE.allFromTo(
+        textContainer,
+        { opacity: 1, translateY: 0 },
+        { opacity: 0, translateY: -100 },
+        {
+          duration: 650,
+          easing: 'easingSinusoidalInOut',
+          onComplete,
+        }
+      )
+      setTimeout(() => clearContainerTween.start(), BEFORE_CLEAR_DELAY)
     },
     _checkMessageQueue() {
       if (this.messagesQueue.length > 0) {

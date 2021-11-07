@@ -1,3 +1,5 @@
+import routes from './pages/routes'
+
 export default {
   // Target: https://go.nuxtjs.dev/config-target
   target: 'static',
@@ -45,5 +47,14 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
-  }
+  },
+
+  router: {
+    linkActiveClass: 'link-active',
+    linkExactActiveClass: 'link-exact-active',
+
+    extendRoutes() {
+      return routes
+    }
+  },
 }

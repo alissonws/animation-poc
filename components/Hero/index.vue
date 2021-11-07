@@ -3,12 +3,13 @@
     <Blob class="blob" />
     <div id="text-container" class="text-container">
       <p
-        v-for="(message, index) in messages"
+        v-for="(messageItem, index) in messages"
         :id="'message-' + index"
         :key="index"
         class="message-item"
+        :style="messageItem.styles"
       >
-        {{ message }}
+        {{ messageItem.message }}
       </p>
     </div>
   </div>
@@ -54,16 +55,55 @@ export default {
         )
         .start()
     },
-    pushText(message) {
+    _actiallyMoveBlob(options) {
+      const self = this
+      const direction = options.direction
+      const screenWidth = window.innerWidth
+      const blobWidth = document.getElementById('blob').offsetWidth
+      // const blobLeftoffset = document
+      //   .getElementById('blob')
+      //   .getBoundingClientRect().left
+
+      if (direction === 'left') {
+        const newValue = (screenWidth / 6) * 1 - blobWidth / 2 + this.blobTransformState.translateX
+        const newBlobState = {
+          ...this.blobTransformState,
+          ...{ translateX: newValue },
+        }
+        const onComplete = function () {
+          this.blobTransformState = newBlobState
+          self._checkMessageQueue()
+        }
+        this.$KUTE
+          .fromTo('.blob', this.blobTransformState, newBlobState, {
+            duration: 1500,
+            easing: 'easingCircularInOut',
+            onComplete,
+          })
+          .start()
+      }
+    },
+    moveBlob(options) {
+      if (
+        this.messagesQueue.length === 0 &&
+        this.isBusy === false &&
+        this.isInitializing === false
+      ) {
+        this._actiallyMoveBlob(options)
+      } else {
+        this.messagesQueue.push({message:'>MOVE_BLOB:' + JSON.stringify(options)})
+      }
+    },
+    pushText(message, styles) {
       if (
         this.messagesQueue.length === 0 &&
         this.isBusy === false &&
         this.isInitializing === false
       ) {
         this.isBusy = true
-        this._actuallyPushText(message)
+        this._actuallyPushText({message, styles})
       } else {
-        this.messagesQueue.push(message)
+        this.messagesQueue.push({message, styles})
       }
     },
     clearTexts() {
@@ -74,11 +114,14 @@ export default {
       ) {
         this._actuallyClearTexts()
       } else {
-        this.messagesQueue.push('>CLEAR')
+        this.messagesQueue.push({message:'>CLEAR'})
       }
     },
-    _actuallyPushText(message) {
-      this.messages.push(message)
+    _actuallyPushText(messageItem) {
+      const message = messageItem.message
+      const styles = messageItem.styles
+
+      this.messages.push({message, styles})
       this.$nextTick(function () {
         const messageTween = this._getDisplayMessageTween(message)
         messageTween.start()
@@ -108,12 +151,15 @@ export default {
     },
     _checkMessageQueue() {
       if (this.messagesQueue.length > 0) {
-        const oldestMessage = this.messagesQueue[0]
+        const oldestMessage = this.messagesQueue[0].message
 
         if (oldestMessage === '>CLEAR') {
           this._actuallyClearTexts()
+        } else if (oldestMessage.includes('>MOVE_BLOB:')) {
+          const options = JSON.parse(oldestMessage.replace('>MOVE_BLOB:', ''))
+          this._actiallyMoveBlob(options)
         } else {
-          this._actuallyPushText(oldestMessage)
+          this._actuallyPushText(this.messagesQueue[0])
         }
 
         this.messagesQueue.splice(0, 1)

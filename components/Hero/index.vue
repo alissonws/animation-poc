@@ -7,7 +7,15 @@
         :id="'message-' + index"
         :key="index"
         class="message-item"
-        :style="messageItem.styles"
+        :style="{
+          ...messageItem.styles,
+          ...{
+            alignSelf:
+              messageItem.options.textArea === 'right'
+                ? 'flex-end'
+                : 'flex-start',
+          },
+        }"
       >
         {{ messageItem.message }}
       </p>
@@ -94,16 +102,24 @@ export default {
         this.messagesQueue.push({message:'>MOVE_BLOB:' + JSON.stringify(options)})
       }
     },
-    pushText(message, styles) {
+    pushText(message, styles, options) {
+      const defaultOptions = {
+        textArea: 'left',
+      }
+
+      const newOptions = {
+        ...defaultOptions,
+        ...options,
+      }
       if (
         this.messagesQueue.length === 0 &&
         this.isBusy === false &&
         this.isInitializing === false
       ) {
         this.isBusy = true
-        this._actuallyPushText({message, styles})
+        this._actuallyPushText({ message, styles, options: newOptions })
       } else {
-        this.messagesQueue.push({message, styles})
+        this.messagesQueue.push({ message, styles, options: newOptions })
       }
     },
     clearTexts() {
@@ -118,10 +134,7 @@ export default {
       }
     },
     _actuallyPushText(messageItem) {
-      const message = messageItem.message
-      const styles = messageItem.styles
-
-      this.messages.push({message, styles})
+      this.messages.push(messageItem)
       this.$nextTick(function () {
         const messageTween = this._getDisplayMessageTween(message)
         messageTween.start()
@@ -221,14 +234,17 @@ export default {
 
 .text-container {
   position: absolute;
-  left: 15%;
+  display: flex;
+  flex-direction: column;
   top: 35%;
-  width: 40%;
+  left: 15%;
+  width: 70%;
   z-index: 999;
   font-size: 2.5rem;
 }
 
 .message-item {
   opacity: 0;
+  max-width: 50%;
 }
 </style>

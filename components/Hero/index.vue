@@ -64,6 +64,9 @@ export default {
         .start()
     },
     _actiallyMoveBlob(options) {
+      const MOVE_BLOB_TWEEN_DURATION = 1500
+      const ON_COMPLETE_MOVE_BLOB_DELAY = MOVE_BLOB_TWEEN_DURATION - 800
+
       const self = this
       const direction = options.direction
       const screenWidth = window.innerWidth
@@ -84,11 +87,12 @@ export default {
         }
         this.$KUTE
           .fromTo('.blob', this.blobTransformState, newBlobState, {
-            duration: 1500,
-            easing: 'easingCircularInOut',
-            onComplete,
+            duration: MOVE_BLOB_TWEEN_DURATION,
+            easing: 'easingSinusoidalInOut',
           })
           .start()
+
+        setTimeout(()=> onComplete(), ON_COMPLETE_MOVE_BLOB_DELAY)
       }
     },
     moveBlob(options) {
